@@ -163,7 +163,7 @@ def addBook():
     
     return render_template('add_book.html')
     
-@app.route("/add_book", methods = ["POST"])
+@application.route("/add_book", methods = ["POST"])
 def add_book_to_db():
     name = request.form['bookname']
     cost = request.form['cost']
@@ -250,7 +250,7 @@ def logout():
     session.pop("user", None)
     return redirect(url_for("login"))
 
-@app.route("/admin_logout")
+@application.route("/admin_logout")
 def admin_logout():
     session.pop("admin_user", None)
     return redirect(url_for("admin"))
