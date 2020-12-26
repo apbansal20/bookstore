@@ -12,16 +12,16 @@ fle=open('db.properties')
 property=fle.readlines()[2]
 fle.close()
 
-app = Flask(__name__)
+application = Flask(__name__)
 
 UPLOAD_FOLDER = '/tmp/static/uploads'
 ALLOWED_EXTENSIONS = set(['jpeg', 'jpg', 'png', 'gif'])
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+application.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-app.config['SECRET_KEY']='e5ac358c-f0bf-11e5-9e39-d3b532c10a28'
-app.config["SQLALCHEMY_DATABASE_URI"] = property
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
-db=SQLAlchemy(app)
+application.config['SECRET_KEY']='e5ac358c-f0bf-11e5-9e39-d3b532c10a28'
+application.config["SQLALCHEMY_DATABASE_URI"] = property
+application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
+db=SQLAlchemy(application)
 
 s3= boto3.client("s3")
 bucket_name = "mys3testmount"
@@ -70,18 +70,18 @@ def convert(pas):
     new_pas=hashpw(pas, gensalt())
     return new_pas
 
-@app.route("/")
+@application.route("/")
 def index():
     return render_template("home.html")
 
 
-@app.route("/login")
+@application.route("/login")
 def login():
     return render_template("login.html")
 
 
 #Validating a user for login
-@app.route('/validate', methods=["POST"])
+@application.route('/validate', methods=["POST"])
 def validate():
     userName=request.form['username']
     session['user']=userName
@@ -103,13 +103,13 @@ def validate():
                 return render_template('login.html')
 
 
-@app.route("/signup")
+@application.route("/signup")
 def signup():
     return render_template("signup.html")
 
 
 #Sending data to the database 
-@app.route('/register', methods=["POST"])
+@application.route('/register', methods=["POST"])
 def register():
     username=request.form['username']
     email=request.form['email']
@@ -130,11 +130,11 @@ def register():
         return render_template("signup.html")
     return redirect(url_for('explore'))
 
-@app.route('/admin')
+@application.route('/admin')
 def admin():
     return render_template('admin.html')
 
-@app.route('/admin_validate', methods=["POST"])
+@application.route('/admin_validate', methods=["POST"])
 def admin_validate():
     userName=request.form['username']
     password=request.form['password']
@@ -155,7 +155,7 @@ def admin_validate():
         flash("Incorrect credentials")
         return render_template('admin.html')
 
-@app.route("/add")
+@application.route("/add")
 def addBook():
     
     if 'admin_user' not in session:
@@ -210,7 +210,7 @@ def add_book_to_db():
     flash("Image was added successfully!")
     return render_template('add_book.html')
 
-@app.route("/delete")
+@application.route("/delete")
 def delete():
     
     if 'admin_user' not in session:
@@ -220,13 +220,13 @@ def delete():
     print(data)
     return render_template("delete.html", data=data)
 
-@app.route("/delete_book")
+@application.route("/delete_book")
 def delete_book():
     flash("The book was deleted")
     return render_template("delete.html")
 
 
-@app.route("/explore")
+@application.route("/explore")
 def explore():
     user=session.get('user')
     if not user:
@@ -235,17 +235,17 @@ def explore():
     data = Book.query.all()
     return render_template('explore.html', data = data)
 
-@app.route("/book/<book_iid>")
+@application.route("/book/<book_iid>")
 def single_book_page(book_iid):
     return "Details of the book are: " + book_iid
 
 
-@app.route("/contact")
+@application.route("/contact")
 def contact():
     return render_template("contact.html")
 
 
-@app.route("/logout")
+@application.route("/logout")
 def logout():
     session.pop("user", None)
     return redirect(url_for("login"))
@@ -257,4 +257,5 @@ def admin_logout():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0")
+    application.run(debug=True, host="0.0.0.0")
+
