@@ -1,0 +1,20 @@
+{% extends "index.html" %}
+{% block head %}
+<title> Explore page</title>
+<link rel="stylesheet" href="https://mybookstore.apbansal.tech/static/css/explore.css">
+{% endblock %}
+
+{% block content %}
+<div class ="mycontainer">
+    {% for book in data %}
+    <div class = "card">
+        <div class = "content">
+            <h2> {{ book.book_id }} </h2>
+            <h3> {{ book.title }} </h3>
+            <p> {{ book.book_description }} </p>
+            <a href="{{ url_for('single_book_page', book_iid = book.book_id )}}"> Read More </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

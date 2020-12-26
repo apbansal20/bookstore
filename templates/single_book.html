@@ -1,0 +1,24 @@
+{% extends "index.html" %}
+{% block head %}
+<title> Explore page</title>
+<link rel="stylesheet" href="https://mybookstore.apbansal.tech/static/css/single.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class = "row">
+    <div class = "col">
+        <img src="https://mybookstore.apbansal.tech/static/images/home.jpg" width="570" height="700" alt="The Book image">
+    </div>
+    <div class = "col second">
+        <h3> Welcome ! </h3>
+
+        <form method="POST" action="https://mybookstore.apbansal.tech/admin_validate">
+            <input type="text" name="username" placeholder="Admin Username.." onfocus="this.placeholder=''">
+            <input type="password" name="password" placeholder="Admin Password" onfocus="this.placeholder=''">
+            <input type="submit" id="submit" value="Atta maaji satak li">
+        </form>
+    </div>
+    </div>
+</div>
+{% endblock %}

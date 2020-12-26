@@ -1,0 +1,21 @@
+.container {
+    margin-top: 30px;
+}
+
+.second {
+    margin-top: 15%;
+    text-align: center;
+    color: white;
+}
+
+table {
+    table-layout: fixed ;
+    width: 100% ;
+  }
+
+  #dlt{
+      padding: 10px;
+      background-color: white;
+      border-radius: 6px;
+      color: black;
+  }

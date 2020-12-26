@@ -1,0 +1,35 @@
+{% extends "index.html" %}
+{% block head %}
+<title> Login page</title>
+<link rel="stylesheet" href="https://mybookstore.apbansal.tech/static/css/login.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class = "row">
+    <div class = "col">
+        <img src="https://mybookstore.apbansal.tech/static/images/home.jpg" width="570" height="700" alt="The Book image">
+    </div>
+    <div class = "col second">
+        <h3> Welcome Human! </h3>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul class=flashes>
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="https://mybookstore.apbansal.tech/validate">
+            <input type="text" name="username" placeholder="Username.." onfocus="this.placeholder=''">
+            <input type="password" name="password" placeholder="Password" onfocus="this.placeholder=''">
+            <input type="submit" id="submit" value="LOGIN">
+        </form>
+
+        <p> Don't have an account?? <a href="https://mybookstore.apbansal.tech/signup"> Sign Up </a> </p>
+    </div>
+    </div>
+</div>
+{% endblock %}

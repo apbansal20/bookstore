@@ -1,0 +1,45 @@
+{% extends "index.html" %}
+{% block head %}
+<title> Adding Book page</title>
+<link rel="stylesheet" href="https://mybookstore.apbansal.tech/static/css/delete.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class = "row">
+        <div class = "col second">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <ul class=flashes>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        {% endwith %}
+            <table class="table table-hover table-dark">
+                <thead>
+                <tr class="tr"> 
+                    <td > Id </td>
+                    <td> Title </td>
+                    <td> Author </td>
+                    <td> Cost </td>
+                    <td> Delete </td>
+                </tr>
+                </thead>
+                <tbody>
+                {% for book in data %}
+                    <tr> 
+                        <td> {{ book.book_id }} </td>
+                        <td> {{ book.title }} </td>
+                        <td> {{ book.author }} </td>
+                        <td> {{ book.price }} </td>
+                        <td> <a  id="dlt" href="{{ url_for('delete_book') }}"> Delete Me...</a></td>
+                     </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

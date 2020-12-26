@@ -1,0 +1,57 @@
+{% extends "index.html" %}
+{% block head %}
+<title> Adding Book page</title>
+<link rel="stylesheet" href="https://mybookstore.apbansal.tech/static/css/book.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class = "row">
+        <ul>
+            <li> <a id="back-a" href="{{ url_for('admin_logout') }}"> Logout </a> </li>
+            <li> <a id="back-a" href="{{ url_for('delete_book') }}"> Delete books </a></li>
+        </ul>
+    </div>
+    <div class = "row">
+    <div class = "col second">
+        <h3> Welcome Admin! </h3>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul class=flashes>
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+        
+        <form method="POST" action="https://mybookstore.apbansal.tech/add_book" enctype="multipart/form-data">
+            <input class="inpt" type="text" name="bookname" placeholder="Name of the book..." onfocus="this.placeholder=''">
+            <input class="inpt" type="text" name="cost" placeholder="Cost in dollars..." onfocus="this.placeholder=''">
+            <input class="inpt" type="text" name="description" placeholder=" Description of book..." onfocus="this.placeholder=''">
+            <input class="inpt" type="text" name="author" placeholder="Author of the book..." onfocus="this.placeholder=''">
+            <p> Image of the book.</p> <input class="inpt" type="file" name="file" value="file" placeholder="Image for the book">
+            <p> Click on the genre to which the book belongs to...</p>
+
+              <div class="group">
+                <input type="checkbox" name="cb" id="cb1" value="Romance"/>
+                <label for="cb1">Romance </label>
+                <input type="checkbox" name="cb" id="cb2" value="Comedy" />
+                <label for="cb2">Comedy</label>
+                <input type="checkbox" name="cb" id="cb3" value="Horror"/>
+                <label for="cb3">Horror</label>
+                <input type="checkbox" name="cb" id="cb4" value="Personal Development"/>
+                <label for="cb4">Personal Development</label>
+                <input type="checkbox" name="cb" id="cb5" value="Academic"/>
+                <label for="cb5">Academic</label>
+                <input type="checkbox" name="cb" id="cb6" value="Fiction"/>
+                <label for="cb6">Fiction</label>
+                <input type="checkbox" name="cb" id="cb7" value="Autobiography"/>
+                <label for="cb7">Autobiography</label>
+              </div>
+            <input type="submit" id="submit" value="Add BOOK">
+        </form>
+    </div>
+    </div>
+</div>
+{% endblock %}

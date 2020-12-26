@@ -1,0 +1,174 @@
+When someone visits our site in the browser, what is the magic that happens that shows our beautifully designed crafted site of ours. 
+
+Step 1:
++++++++
+
+Browser thinks what is this gibberish that this fool has typed in. I only understand IP's. What to do with this.
+Can somebody help? Koi bacha lo mujhe. DNS will come to the rescue. 
+
+Browser sends a UDP packet to the DNS server that the host is configured. Its literally saying oy DNS server is domain ka IP de. And 
+DNS server does some magic and sends our Name Servers. To know more about DNS and stuff, start following vinnybsrinivasa. 
+
+So, for this purpose we configured Route 53 which provides Name servers information for our domain name. Theek hai. So, we created a
+hosted zone which will have name servers which have all other records that we add to our domain. So, you will get an IP address of one 
+of the name server for the query to DNS server from your browser. 
+
+Now, again browser sends another request to the name server asking for IP of the original domain that user typed in by the user. Now, 
+if the name server finds what the user is asking for, it sends the IP back. In our case, we are pointing to ALB which is in public subnet,
+so the name server will return the any of the public IP of the load balancer. 
+
+How to check the IP of load balancer:
+  # nslookup <dns_endpoint>
+
+In general, 'A' record hotha hai in name server record which resolves domain name to IP. Yaha tak good na, why we use Route 53 hosted
+zone and records. 
+
+Summary of step 1:
+------------------
+Service: Route 53
+Steps:
+  - Create a hosted zone for your domain name and add the name servers to the registrar where you bought the domain name. 
+  - Create an 'A' alias record that points your sub-domain to a AWS resource.
+Achieved:
+  - Got the public IP of our Application Load Balancer.
+
+Step 2:
++++++++
+
+Now, browser knows the IP of our load balancer. Browser sends a http request to the load balancer. http request matlab by default port 
+80 of the load balancer pe aayega request. Now, think of load balancer as a hotel that we went for big bash. Theek hai. Kya hotha, many
+auditoriums aur party halls hotha aur bas ek yah dho front gate hotha. Tho watchman at the front gate has a sheet who checks joh aaya 
+vus se pooche ki kiske liye aaya amazon party then go to auditorium number 6. 
+
+Same hotha hai listener, rules and security groups. Watchman are listeners. Rules are sheets where entries are done i.e. kiske liye aaya
+auditoriums are TG kaha jaana hai.
+
+So, in our case watchman is port 80 which we dont want tho koi vus gate se aaya tho batha dena bhai go to gate no 2. 1 se jaana mana hai.
+then they will redirected to https i.e. gate 2. vaha aaya aur hamara book mein 2 rules hai bas. Static ke liye aaya then go to auditorium 
+static ( target group static ) yah nahi kuch bhi aur khane ke liye aaya go to auditorium 1 ( target group application. )
+
+Aur gate 2 pe aane se ek sundhar se ladki welcome karthi hai aur poochthi hai kuch info like insta id ( uff aaj kal following na kuch 
+zyada hi ho raha hai ) aur ek red band haath pe laga deti. This is our ACM which is generally used for security purposes par vutna kyu 
+jan na hai. Patha hai na agar zyada janna hai vinnybsrinvasa. Here, we create an ACM with our domain name and validate it using DNS or email. 
+Yeh tho patha hi haina. 
+
+Ab yaha watchman also should have some criteria to let someone in, our security group. Load balancer ka security group mein allow karna
+hai all traffic on listener ports. Matlab log hamari hi gao se aa saktha hai hotel ko, US se bhi aa saktha yah samsung se bhi, you don't 
+know kadha so allow all traffic on the load balancer. Theek hai. 
+
+Haa, health checks bhi tho hai. Watchman ke pass na walkie talkie hotha hai aur har baar watchman at the entrance of each auditorium
+bas baath kartha rehtha hai to know that watchman at the entrance of auditorium so nahi rahe agar so jay tho vus target group ka requests
+watchman deny karega with 5** request code i.e. 503, 504 kuch aisa. 
+
+Jaisa walkie talkie mein specific phone numbers hotha hamara TG mein health checks ka specific paths hoga. Health check set karna
+ hai tumko application pe / and static target group pe /static/css/home.css
+
+Summary of step 2:
+------------------
+Services: ALB, Target groups, ACM, Security groups. 
+Steps: 
+  - Create two target groups, one for application on port 5000 and one for static on port 80
+  - Create an ACM for your domain with DNS validation and add the records in your route 53 and wait..... till the cert is issued. 
+  - Create a security group  by allow all http and https traffic for everyone.
+  - Create an internet-facing load balancers i.e. in public subnets and attach the sg that you created.
+    - Once LB is ready, add a listener on port 443 and associate our ACM.
+    - Listener 1: Port 80. Do nothing only redirect to port 443
+    - Listener 2: Port 443. Two things bro.
+      - URL has static/* go to static TG
+      - or else go the application TG 
+Achieved:
+  - The request will be routed to the specific TG. 
+
+Step 3:
++++++++
+
+Ab chali gayi tum uber cab pe marathahalli se auditorium 1 ( application TG ) tak with bulusu aur voh. Ab individual auditorium have 
+their own architecture and interior. Vaise hi 
+
+ Auditorium 2 ( static TG ): 
+ --------------------------
+ install nginx in ubuntu instance 
+    # sudo apt-get update
+    # sudo apt-get install nginx 
+    # Somehow magically copy the static directory to /var/www/html
+    # sudo chown -R www-data /var/www/html/
+    # sudo systemctl start nginx.service
+    # sudo systemctl enable nginx.service
+    # to verify whether service is running or not run the below commands any one of them
+    # netstat -ntlp 
+    # ps aux | grep nginx
+    # systemctl status nginx.service 
+
+Ab, yaha question aayega where do i place this instance, public subnet or private. Bas common sense sa sawal hai, what do you want to expose
+watchman se tight security vala entry yah shakthiman jaisa direct fly hoke auditorium mein entry. Pehla vala sahi laga na, that's why
+only expose internet traffic to the load balancer i.e. only place load balancer in public subnets. aur bakhi sab joh LB ke peeche aayega 
+voh private subnets, let LB send them to us. 
+
+Now, create another Security group for this instances. what all to allow bas kuch nahi joh watchman se aaye yah andhar hi andhar koi 
+ghoom raha hai tho vuska aane dhe. i.e. port 80 traffic within the VPC CIDR. 
+
+Auditorium 1( application TG ):
+------------------------------
+Hamara application chal raha hai. itni baar deploy kiya abhi tak tho kya karna hai patha chal gaya hoga. phir bhi 
+ you will get a zip file and follow the below steps:
+  1. unzip the zip file. Install unzip. 
+  2. Read README.md and follow the steps.
+  3. run our application using nohup. 
+
+Now, try to place this in ASG so that agar zyada log aa gaye amazon se auditorium ko tho dho theen auditorium mila de. So, put this in
+ASG with a customized AMI and the user-data and also provide some IAM role. 
+
+Ab isko bhi same principal for security group, allow either traffic from watchman i.e. port 5000 traffic from SG of LB or CIDR of VPC 
+
+Summary of Step 3:
+------------------
+
+Services: EC2, ASG, IAM, 
+Steps: 
+  - Create two Security groups for two TG's. 
+  - Create a single EC2 for static TG. if you want, you can create a ASG with an AMI as well. No worries. 
+  - Create an IAM role with S3 full access ( Vutna nahi chahiye, par de dena, dene se koi kam nahi ho jaatha na )
+  - Create an ASG for our application.
+Achieved: 
+  - Highly fault tolerant application and static content serving instances. 
+
+
+Step 4:
+++++++
+
+Ab aaya hamara database. Database maan lo hamara kitchen in the auditorium jaha special receipe se food bane. Thodi tum sab ko dikathe 
+ho special receipe aur in sab ko voh bahut protected hothe hai same goes to our DB. You know kitchen ke andhar bas tumhare log hi hoga so 
+place them in private subnet with only internal traffic allowed on port 3306. Ho gaya database. 
+
+Ab get this database endpoint and change it in our db.properties of our application. 
+
+Jab database ban gaya tho pehla cheez ek database banao aur ek user banao who has full access to the db ( not recommended par show your courtesy 
+kindness). Aur tables bhi bana dena. Better create a file with all the commands that we get executed. 
+
+Ab yeh food tho andhar hai tho kaisa access kare, get inside the VPC using bastion host and install mysql and run the commands. Theek hai
+
+Summar of step 4:
+----------------
+
+Services: RDS, SG
+Steps:
+  - Create a security group with allowing only traffic on port 3306 from VPC CIDR or ( Application SG and Bastion host SG)
+  - Create an MySQL RDS instance in private subnets. 
+Achieved:
+  - Working RDS instance with an endpoint 
+
+Step 5:
+
+S3 yeh kal batavunga. Abhi thoda kaam hai. 
+
+
+Yeh sab padne ke baad yeh mat bolna ki hum bakchod hi sahi hai itna kyu likha karke. Huh. Likhne ke liye tareef mat kiya karo theek hai 
+par aisa statements mat diya karo. 
+
+Okay. is ke bahar kuch doubt hai tho mein bolunga after tomorrow. 
+
+
+
+
+
+  
