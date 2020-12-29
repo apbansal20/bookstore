@@ -7,6 +7,12 @@
 {% block content %}
 <div class="container">
     <div class = "row">
+        <ul>
+            <li> <a id="back-a" href="{{ url_for('admin_logout') }}"> Logout </a> </li>
+            <li> <a id="back-a" href="{{ url_for('delete_book') }}"> Delete books </a></li>
+        </ul>
+    </div>
+    <div class = "row">
         <div class = "col second">
         {% with messages = get_flashed_messages() %}
             {% if messages %}
@@ -34,7 +40,7 @@
                         <td> {{ book.title }} </td>
                         <td> {{ book.author }} </td>
                         <td> {{ book.price }} </td>
-                        <td> <a  id="dlt" href="{{ url_for('delete_book') }}"> Delete Me...</a></td>
+                        <td> <a  id="dlt" href="{{ url_for('delete_book', book_iid = book.book_id) }}"> Delete Me...</a></td>
                      </tr>
                 {% endfor %}
                 </tbody>

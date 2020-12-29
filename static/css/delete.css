@@ -19,3 +19,15 @@ table {
       border-radius: 6px;
       color: black;
   }
+
+  #back-a {
+    background: black;
+    color: white;
+    border-radius: 6px;
+    padding: 5px 20px 5px 20px;
+  }
+
+li {
+  display: inline;
+  margin-left: 30px;
+}

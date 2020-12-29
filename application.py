@@ -7,6 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import exc
 from werkzeug.utils import secure_filename
 import boto3
+from datetime import datetime
 
 fle=open('db.properties')
 property=fle.readlines()[2]
@@ -20,7 +21,8 @@ application.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 application.config['SECRET_KEY']='e5ac358c-f0bf-11e5-9e39-d3b532c10a28'
 application.config["SQLALCHEMY_DATABASE_URI"] = property
-application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
+application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+STATIC_URL = "https://d35vxxa40pxa0j.cloudfront.net/"
 db=SQLAlchemy(application)
 
 s3= boto3.client("s3")
@@ -64,11 +66,29 @@ class Genre(db.Model):
         self.book_id = book_id
         self.genre = genre
 
+class Orders(db.Model):
+    __tablename__="orders"
+    id = db.Column('id', db.Integer, primary_key=True)
+    book_id = db.Column('book_id', db.Integer)
+    user_id = db.Column('user_id', db.Integer)
+    order_time = db.Column('ordered_time', db.DateTime, default=db.func.current_timestamp())
+    address = db.Column('address', db.String(150))
+    phone = db.Column('phone', db.String(15))
+    cx_name = db.Column('cx_name', db.String(30))
+    
+    def __init(self, book_id, user_id, address, phone, cx_name):
+        self.book_id = book_id
+        self.user_id = user_id
+        self.address = address
+        self.phone = phone
+        self.cx_name = cx_name
+
 
 def convert(pas):
     pas=pas.encode()
     new_pas=hashpw(pas, gensalt())
     return new_pas
+
 
 @application.route("/")
 def index():
@@ -130,9 +150,61 @@ def register():
         return render_template("signup.html")
     return redirect(url_for('explore'))
 
+
+@application.route("/explore")
+def explore():
+    user=session.get('user')
+    if not user:
+        return redirect(url_for('login'))
+    
+    data = Book.query.all()
+    return render_template('explore.html', data = data)
+
+
+@application.route("/book/<book_iid>")
+def single_book_page(book_iid):
+    data = Book.query.filter_by(book_id = book_iid)
+    pic = STATIC_URL + book_iid + ".jpg"
+    return render_template("each_book.html", data = data, pic = pic)
+
+
+@application.route("/order")
+def order():
+    book_id = request.args.get("bookid", None)
+    print(book_id)
+    book_info = Book.query.filter_by(book_id = book_id)
+    print(book_info)
+    return render_template("order.html", data = book_info)
+
+@application.route("/make_order/<book_iid>", methods=["POST"])
+def make_order(book_iid):
+    book_info = Book.query.filter_by(book_id = book_iid)
+    print(str(book_info[0].price) + " is the price of the book")
+    username = session['user']
+
+    cx_name = request.form['name']
+    address=request.form['address']
+    phone=request.form['phone']
+    quantity = request.form['quantity']
+    print(type(quantity))
+    print(book_info[0].price, type(book_info[0].price))
+    if address=="" or phone=="" or quantity=="" or cx_name=="" :
+        flash("Mandatory fields are missing")
+        return render_template('order.html', data = book_info)
+    tot_price = float(book_info[0].price) * int(quantity)
+
+    return "the details are " + username + " " + address + " " + str(quantity) + " " + str(tot_price) +" ..."
+
+
+@application.route("/contact")
+def contact():
+    return render_template("contact.html")
+
+
 @application.route('/admin')
 def admin():
     return render_template('admin.html')
+
 
 @application.route('/admin_validate', methods=["POST"])
 def admin_validate():
@@ -155,6 +227,7 @@ def admin_validate():
         flash("Incorrect credentials")
         return render_template('admin.html')
 
+
 @application.route("/add")
 def addBook():
     
@@ -162,7 +235,8 @@ def addBook():
         return redirect(url_for('admin'))
     
     return render_template('add_book.html')
-    
+
+
 @application.route("/add_book", methods = ["POST"])
 def add_book_to_db():
     name = request.form['bookname']
@@ -210,6 +284,7 @@ def add_book_to_db():
     flash("Image was added successfully!")
     return render_template('add_book.html')
 
+
 @application.route("/delete")
 def delete():
     
@@ -220,35 +295,25 @@ def delete():
     print(data)
     return render_template("delete.html", data=data)
 
-@application.route("/delete_book")
-def delete_book():
-    flash("The book was deleted")
+
+@application.route("/delete_book/<book_iid>")
+def delete_book(book_iid):
+    if 'admin_user' not in session:
+        return redirect(url_for('admin'))
+
+    book_tilte = Book.query.filter_by(book_id=book_iid).delete()
+    print(deleted_book)
+    db.session.commit()
+
+    flash("The book "+ book_tilte + " was deleted")
     return render_template("delete.html")
-
-
-@application.route("/explore")
-def explore():
-    user=session.get('user')
-    if not user:
-        return redirect(url_for('login'))
-    
-    data = Book.query.all()
-    return render_template('explore.html', data = data)
-
-@application.route("/book/<book_iid>")
-def single_book_page(book_iid):
-    return "Details of the book are: " + book_iid
-
-
-@application.route("/contact")
-def contact():
-    return render_template("contact.html")
 
 
 @application.route("/logout")
 def logout():
     session.pop("user", None)
     return redirect(url_for("login"))
+
 
 @application.route("/admin_logout")
 def admin_logout():
@@ -258,4 +323,3 @@ def admin_logout():
 
 if __name__ == "__main__":
     application.run(debug=True, host="0.0.0.0")
-

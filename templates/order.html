@@ -1,0 +1,60 @@
+{% extends "index.html" %}
+{% block head %}
+<title> Adding Book page</title>
+<link rel="stylesheet" href="https://mybookstore.apbansal.tech/static/css/order.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class = "row">
+        <ul>
+            <li> <a id="back-a" href="{{ url_for('logout') }}"> Logout </a> </li>
+            <li> <a id="back-a" href="{{ url_for('explore') }}"> Explore books </a></li>
+        </ul>
+    </div>
+    <div class = "row">
+    <div class = "col second">
+        <h3> Welcome To Checkout </h3>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul class=flashes>
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+
+        {% for book in data %}
+        <form method="POST" action="{{ url_for('make_order', book_iid=book.book_id) }}" enctype="multipart/form-data">
+            <p> {{ book }}</p>
+            <p> Name: </p><input class="inpt" type="text" name="name" required>
+            <p> Quantity: </p><input class="inpt" type="number" id="quanti" name="quantity" placeholder="1" onfocus="this.placeholder=''" onclick="update()"> $ <span id="total_price"> {{ book.price }}</span>
+            <p> Address... </p><input class="inpt" type="text" name="address" required>
+            <p> Phone number: </p> <input class="inpt" type="tel" name="phone" pattern="[0-9]{10}" required>
+            <input type="submit" id="submit" value="Confirm Order...">
+            {% endfor %}
+        </form>
+    </div>
+    </div>
+</div>
+<script>
+    var ticketInput = document.getElementById("total_price");
+    var inputTicketQuantity = document.getElementById("quanti");
+    var ticketCost = '{{ data[0].price }}';
+
+    // Handle the precision up to >= $100
+    function changeCost( num ) {
+    var cost = new Number( parseFloat( num ) * ticketCost );
+    var precision = cost.toString().length === 3 ? 3 : 4;
+    return cost.toPrecision( precision );
+    }
+
+    inputTicketQuantity.addEventListener('input', function( event ) {
+    var value = event.target.value;
+    if ( !isNaN( value ) ) {
+        ticketInput.innerHTML = changeCost( value );
+    }
+    });
+</script>
+{% endblock %}

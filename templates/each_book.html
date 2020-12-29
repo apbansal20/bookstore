@@ -1,0 +1,25 @@
+{% extends "index.html" %}
+{% block head %}
+<title> Explore page</title>
+<link rel="stylesheet" href="https://mybookstore.apbansal.tech/static/css/each_book.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class = "row">
+    <div class = "col">
+        <img src="{{ pic }}" width="570" height="700" alt="The Book image">
+    </div>
+    <div class = "col second">
+        {% for book in data %}
+        <h2> {{ book.title }}</h2>
+        <p> {{ book.book_description }}</p>
+        <h5> Price: {{ book.price }} </h5>
+        <p> Author: {{ book.author }} </p>
+        <p> For now, we only support Cash On Delivery :)</p>
+        <a href="{{ url_for('order', bookid = book.book_id) }}" id="explore"> Place order</a>
+        {% endfor %}
+    </div>
+    </div>
+</div>
+{% endblock %}
