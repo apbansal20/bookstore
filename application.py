@@ -22,7 +22,7 @@ application.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 application.config['SECRET_KEY']='e5ac358c-f0bf-11e5-9e39-d3b532c10a28'
 application.config["SQLALCHEMY_DATABASE_URI"] = property
 application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-STATIC_URL = "https://d35vxxa40pxa0j.cloudfront.net/"
+STATIC_URL = "https://d30nsl2ncupook.cloudfront.net/"
 db=SQLAlchemy(application)
 
 s3= boto3.client("s3")
@@ -75,6 +75,8 @@ class Orders(db.Model):
     address = db.Column('address', db.String(150))
     phone = db.Column('phone', db.String(15))
     cx_name = db.Column('cx_name', db.String(30))
+    quantity = db.Column('quantity', db.Integer)
+    price = db.Column('total_price', db.Integer)
     
     def __init(self, book_id, user_id, address, phone, cx_name):
         self.book_id = book_id
@@ -82,6 +84,8 @@ class Orders(db.Model):
         self.address = address
         self.phone = phone
         self.cx_name = cx_name
+        self.quantity = quantity
+        self.price = price
 
 
 def convert(pas):
@@ -154,9 +158,10 @@ def register():
 @application.route("/explore")
 def explore():
     user=session.get('user')
+    """
     if not user:
         return redirect(url_for('login'))
-    
+    """
     data = Book.query.all()
     return render_template('explore.html', data = data)
 
@@ -182,24 +187,45 @@ def make_order(book_iid):
     print(str(book_info[0].price) + " is the price of the book")
     username = session['user']
 
+    user_id = Users.query.filter_by(username = username)
     cx_name = request.form['name']
     address=request.form['address']
     phone=request.form['phone']
     quantity = request.form['quantity']
-    print(type(quantity))
-    print(book_info[0].price, type(book_info[0].price))
     if address=="" or phone=="" or quantity=="" or cx_name=="" :
         flash("Mandatory fields are missing")
         return render_template('order.html', data = book_info)
     tot_price = float(book_info[0].price) * int(quantity)
-
-    return "the details are " + username + " " + address + " " + str(quantity) + " " + str(tot_price) +" ..."
+    
+    try:
+        ma_order = Orders(book_id = book_iid, address = address, cx_name = cx_name, phone = phone, user_id = user_id[0].id, quantity = quantity, total_price = tot_price)
+        db.session.add(ma_order)
+        db.session.commit()
+        flash('Your order was done successfully')
+    except exc.IntegrityError:
+        flash('Some error occured. Contact support...')
+    
+    return render_template("order.html", data = book_info)
 
 
 @application.route("/contact")
 def contact():
     return render_template("contact.html")
 
+
+@application.route("/my_orders")
+def my_orders():
+    return render_template("my_orders.html")
+
+
+@application.route("/logout")
+def logout():
+    session.pop("user", None)
+    return redirect(url_for("login"))
+
+################
+#  Admin code  #
+################
 
 @application.route('/admin')
 def admin():
@@ -307,12 +333,6 @@ def delete_book(book_iid):
 
     flash("The book "+ book_tilte + " was deleted")
     return render_template("delete.html")
-
-
-@application.route("/logout")
-def logout():
-    session.pop("user", None)
-    return redirect(url_for("login"))
 
 
 @application.route("/admin_logout")

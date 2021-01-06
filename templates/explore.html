@@ -5,6 +5,12 @@
 {% endblock %}
 
 {% block content %}
+<div class = "row">
+    <ul>
+        <li> <a id="back-a" href="{{ url_for('logout') }}"> Logout </a> </li>
+        <li> <a id="back-a" href="{{ url_for('my_orders') }}">My Orders </a> </li>
+    </ul>
+</div>
 <div class ="mycontainer">
     {% for book in data %}
     <div class = "card">

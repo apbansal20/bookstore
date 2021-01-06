@@ -71,6 +71,17 @@
     text-decoration: none;
     font-weight: 500;
     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-
-
 }
+
+
+li {
+    display: inline;
+    margin-left: 30px;
+  }
+  
+  a#back-a {
+      background-color: black;
+      font: white;
+      border-radius: 6px;
+      padding: 10px 30px;
+  }

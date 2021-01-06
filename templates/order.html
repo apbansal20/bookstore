@@ -27,9 +27,9 @@
 
         {% for book in data %}
         <form method="POST" action="{{ url_for('make_order', book_iid=book.book_id) }}" enctype="multipart/form-data">
-            <p> {{ book }}</p>
+            <p> {{ book.title }}</p>
             <p> Name: </p><input class="inpt" type="text" name="name" required>
-            <p> Quantity: </p><input class="inpt" type="number" id="quanti" name="quantity" placeholder="1" onfocus="this.placeholder=''" onclick="update()"> $ <span id="total_price"> {{ book.price }}</span>
+            <p> Quantity: </p><input class="inpt" type="number" id="quanti" name="quantity" placeholder="1" onfocus="this.placeholder=''" max="3" onclick="update()"> $ <span id="total_price"> {{ book.price }}</span>
             <p> Address... </p><input class="inpt" type="text" name="address" required>
             <p> Phone number: </p> <input class="inpt" type="tel" name="phone" pattern="[0-9]{10}" required>
             <input type="submit" id="submit" value="Confirm Order...">
