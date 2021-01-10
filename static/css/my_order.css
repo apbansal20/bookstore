@@ -1,0 +1,29 @@
+.container {
+    margin-top: 30px;
+}
+
+.second
+{
+	font-family: Helvetica, sans-serif;
+    text-align: center;
+    color: black;
+}
+
+h3
+{
+	font-weight: 990;
+	padding-top:40px;
+	padding-bottom: 40px;
+}
+
+li {
+  display: inline;
+  margin-left: 30px;
+}
+
+a#back-a {
+    background-color: black;
+    font: white;
+    border-radius: 6px;
+    padding: 10px 30px;
+}

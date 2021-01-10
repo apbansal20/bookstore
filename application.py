@@ -237,7 +237,12 @@ def contact():
 
 @application.route("/my_orders")
 def my_orders():
-    return render_template("my_orders.html")
+    username = session['user']
+    user_obj = Users.query.filter_by(username=username)
+    user_id = user_obj[0].id
+    orders = Orders.query.filter_by(user_id = user_id)
+
+    return render_template("my_orders.html", orders = orders)
 
 
 @application.route("/logout")

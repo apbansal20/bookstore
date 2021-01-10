@@ -1,0 +1,41 @@
+{% extends "index.html" %}
+{% block head %}
+<title> Adding Book page</title>
+<link rel="stylesheet" href="https://mybookstore.apbansal.tech/static/css/my_order.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class = "row">
+        <ul>
+            <li> <a id="back-a" href="{{ url_for('index') }}"> Home page </a></li>
+            <li> <a id="back-a" href="{{ url_for('explore') }}"> Explore books </a></li>
+            <li> <a id="back-a" href="{{ url_for('logout') }}"> Logout </a> </li>
+        </ul>
+    </div>
+    <div class = "row">
+    <div class = "col second">
+        <h3> Welcome To Your Orders Page.</h3>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul class=flashes>
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+
+    </div>
+    </div>
+
+    {% for order in orders %}
+    <div class="row"></div>
+        <p> Order id: {{ order.id }}</p>
+        <p> Name: {{ order.cx_name }} </p>
+        <p> quantity: {{ order.quantity }}</p>
+        <p> Address... {{ order.address }} </p>
+        <p> Phone number: {{ order.phone }}</p> 
+        {% endfor %}
+</div>
+{% endblock %}
