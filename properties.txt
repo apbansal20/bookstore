@@ -1,0 +1,4 @@
+sql_string=mysql+mysqlconnector://app_user:Aparna2020_CSE@myapplicationdatabasefinal.cvaxhuagn30c.us-east-1.rds.amazonaws.com/appu_app
+s3_bucketname = mys3testmount
+cloufront_url = 
+queue_url = 

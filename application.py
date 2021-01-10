@@ -9,9 +9,25 @@ from werkzeug.utils import secure_filename
 import boto3
 from datetime import datetime
 
-fle=open('db.properties')
-property=fle.readlines()[2]
+fle=open('properties.txt')
+for i in fle.readlines():
+    if i=="":
+        pass
+    property,value = i.split("=")
+    if property.strip()=="sql_string":
+        DB_STRING = value.strip()
+    if property.strip() == "s3_bucketname":
+        S3_BUCKET = value.strip()
+    if property.strip() == "cloufront_url":
+        CLOUDFRONT_URL = value.strip()
+    if property.strip() == "queue_url":
+        QUEUE_URL = value.strip()
+
 fle.close()
+
+# clients
+s3= boto3.client("s3")
+sqs = boto3.client("sqs")
 
 application = Flask(__name__)
 
@@ -20,13 +36,10 @@ ALLOWED_EXTENSIONS = set(['jpeg', 'jpg', 'png', 'gif'])
 application.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 application.config['SECRET_KEY']='e5ac358c-f0bf-11e5-9e39-d3b532c10a28'
-application.config["SQLALCHEMY_DATABASE_URI"] = property
+application.config["SQLALCHEMY_DATABASE_URI"] = DB_STRING
 application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-STATIC_URL = "https://d30nsl2ncupook.cloudfront.net/"
 db=SQLAlchemy(application)
 
-s3= boto3.client("s3")
-bucket_name = "mys3testmount"
 
 #user info table for the db
 class Users(db.Model):
@@ -116,15 +129,15 @@ def validate():
         return render_template('login.html')
     pass1=Users.query.filter_by(username=userName).first()
     if pass1==None:
-            return render_template('foff.html')
+        return render_template('foff.html')
     else:
-            password=password.encode('utf-8')
-            db_pass=pass1.password.encode()
-            if hashpw(password, db_pass)==db_pass:
-                return redirect(url_for('explore'))
-            else:
-                flash("Invalid credentials...!")
-                return render_template('login.html')
+        password=password.encode('utf-8')
+        db_pass=pass1.password.encode()
+        if hashpw(password, db_pass)==db_pass:
+            return redirect(url_for('explore'))
+        else:
+            flash("Invalid credentials...!")
+            return render_template('login.html')
 
 
 @application.route("/signup")
@@ -169,7 +182,7 @@ def explore():
 @application.route("/book/<book_iid>")
 def single_book_page(book_iid):
     data = Book.query.filter_by(book_id = book_iid)
-    pic = STATIC_URL + book_iid + ".jpg"
+    pic = CLOUDFRONT_URL + book_iid + ".jpg"
     return render_template("each_book.html", data = data, pic = pic)
 
 
@@ -204,8 +217,16 @@ def make_order(book_iid):
         flash('Your order was done successfully')
     except exc.IntegrityError:
         flash('Some error occured. Contact support...')
+        return render_template("order.html", data = book_info)
     
-    return render_template("order.html", data = book_info)
+    """ 
+        Sending message to the queue
+    """
+    email = user_id[0].email
+    order_id = ma_order.id
+    message_body = {"email": email, "order_id": order_id, "name": cx_name, "book_name": book_info[0].title, "total_price": tot_price}
+    response = sqs.send_message(QueueUrl = QUEUE_URL, MessageBody=json.encode(message_body))
+    print(response['MessageId'])
 
 
 @application.route("/contact")
@@ -305,7 +326,7 @@ def add_book_to_db():
         tmp_loc = "/tmp/images/" + filename
         img.save(tmp_loc)
         index_file = "images/"+filename
-        s3.upload_file(Bucket = bucket_name, Filename=tmp_loc, Key = index_file)
+        s3.upload_file(Bucket = S3_BUCKET, Filename=tmp_loc, Key = index_file)
         print("Upload is successful")
     flash("Image was added successfully!")
     return render_template('add_book.html')
