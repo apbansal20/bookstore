@@ -11,9 +11,9 @@ from datetime import datetime
 
 fle=open('properties.txt')
 for i in fle.readlines():
-    if i=="":
-        pass
     property,value = i.split("=")
+    if property.strip() == "region":
+        REGION = value.strip()
     if property.strip()=="sql_string":
         DB_STRING = value.strip()
     if property.strip() == "s3_bucketname":
@@ -26,8 +26,8 @@ for i in fle.readlines():
 fle.close()
 
 # clients
-s3= boto3.client("s3")
-sqs = boto3.client("sqs")
+s3= boto3.client("s3", region_name = REGION)
+sqs = boto3.client("sqs", region_name = REGION)
 
 application = Flask(__name__)
 
@@ -228,6 +228,7 @@ def make_order(book_iid):
     response = sqs.send_message(QueueUrl = QUEUE_URL, MessageBody=json.encode(message_body))
     print(response['MessageId'])
 
+    return "Order placed successfully."
 
 @application.route("/contact")
 def contact():

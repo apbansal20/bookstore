@@ -1,6 +1,7 @@
 flask
 flask-mysql
 bcrypt
+flask-sqlalchemy
 mysql-connector
 boto3
 flask-sqlalchemy
