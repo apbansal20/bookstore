@@ -1,0 +1,10 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /home/ubuntu/
+hooks:
+  ApplicationStart:
+    - location: /root/start.sh
+      timeout: 300
+      runas: root
