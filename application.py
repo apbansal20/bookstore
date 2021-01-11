@@ -208,7 +208,7 @@ def make_order(book_iid):
     tot_price = float(book_info[0].price) * int(quantity)
     
     try:
-        ma_order = Orders(book_id = book_iid, address = address, cx_name = cx_name, phone = phone, user_id = user_id[0].id, quantity = quantity, total_price = tot_price)
+        ma_order = Orders(book_id = book_iid, address = address, cx_name = cx_name, phone = phone, user_id = user_id[0].id, quantity = quantity, price = tot_price)
         db.session.add(ma_order)
         db.session.commit()
         flash('Your order was done successfully')
