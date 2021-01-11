@@ -189,15 +189,12 @@ def single_book_page(book_iid):
 @application.route("/order")
 def order():
     book_id = request.args.get("bookid", None)
-    print(book_id)
     book_info = Book.query.filter_by(book_id = book_id)
-    print(book_info)
     return render_template("order.html", data = book_info)
 
 @application.route("/make_order/<book_iid>", methods=["POST"])
 def make_order(book_iid):
     book_info = Book.query.filter_by(book_id = book_iid)
-    print(str(book_info[0].price) + " is the price of the book")
     username = session['user']
 
     user_id = Users.query.filter_by(username = username)
@@ -226,7 +223,6 @@ def make_order(book_iid):
     order_id = ma_order.id
     message_body = {"email": email, "order_id": order_id, "name": cx_name, "book_name": book_info[0].title, "total_price": tot_price}
     response = sqs.send_message(QueueUrl = QUEUE_URL, MessageBody=json.encode(message_body))
-    print(response['MessageId'])
 
     return "Order placed successfully."
 
@@ -300,7 +296,6 @@ def add_book_to_db():
     st.form.getlist('cb')
     img = request.files['file']
 
-    print(genre)
 
     if name=="" or cost=="" or descr=="" or authr=="":
         flash("Mandatory fields are missing")
@@ -327,13 +322,11 @@ def add_book_to_db():
         return render_template("add_book.html")
     
     if img:
-        print(id)
         filename = str(id) + "." + exten
         tmp_loc = "/tmp/images/" + filename
         img.save(tmp_loc)
         index_file = "images/"+filename
         s3.upload_file(Bucket = S3_BUCKET, Filename=tmp_loc, Key = index_file)
-        print("Upload is successful")
     flash("Image was added successfully!")
     return render_template('add_book.html')
 
@@ -345,7 +338,6 @@ def delete():
         return redirect(url_for('admin'))
 
     data = Book.query.all()
-    print(data)
     return render_template("delete.html", data=data)
 
 
@@ -355,7 +347,6 @@ def delete_book(book_iid):
         return redirect(url_for('admin'))
 
     book_tilte = Book.query.filter_by(book_id=book_iid).delete()
-    print(deleted_book)
     db.session.commit()
 
     flash("The book "+ book_tilte + " was deleted")
