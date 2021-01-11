@@ -7,6 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import exc
 from werkzeug.utils import secure_filename
 import boto3
+import json
 from datetime import datetime
 
 fle=open('properties.txt')
