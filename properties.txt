@@ -1,4 +1,4 @@
-sql_string=mysql+mysqlconnector://app_user:Aparna2020_CSE@myapplicationdatabasefinal.cvaxhuagn30c.us-east-1.rds.amazonaws.com/appu_app
+sql_string=mysql+mysqlconnector://app_user:Aparna2020_CSE@myapplicationdatabasefinal.cl4bvfoddhp3.ap-south-1.rds.amazonaws.com/appu_app
 s3_bucketname = s3-bucket-cloudformation-testing
 cloufront_url = https://d30nsl2ncupook.cloudfront.net
 queue_url = https://sqs.ap-south-1.amazonaws.com/708736462283/MyResults
