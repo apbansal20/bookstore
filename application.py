@@ -223,7 +223,7 @@ def make_order(book_iid):
     email = user_id[0].email
     order_id = ma_order.id
     message_body = {"email": email, "order_id": order_id, "name": cx_name, "book_name": book_info[0].title, "total_price": tot_price}
-    response = sqs.send_message(QueueUrl = QUEUE_URL, MessageBody=json.encode(message_body))
+    response = sqs.send_message(QueueUrl = QUEUE_URL, MessageBody=json.dumps(message_body))
 
     return "Order placed successfully."
 
