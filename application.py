@@ -293,8 +293,7 @@ def add_book_to_db():
     cost = request.form['cost']
     descr = request.form['description']
     authr = request.form['author']
-    genre = request.form['genre']
-    st.form.getlist('cb')
+    genre = request.form.getlist('cb')
     img = request.files['file']
 
 
