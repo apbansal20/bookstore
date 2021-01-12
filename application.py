@@ -323,7 +323,7 @@ def add_book_to_db():
     
     if img:
         filename = str(id) + "." + exten
-        tmp_loc = "/tmp/images/" + filename
+        tmp_loc = "/tmp/" + filename
         img.save(tmp_loc)
         index_file = "images/"+filename
         s3.upload_file(Bucket = S3_BUCKET, Filename=tmp_loc, Key = index_file)
