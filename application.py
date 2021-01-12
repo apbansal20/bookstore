@@ -172,10 +172,10 @@ def register():
 @application.route("/explore")
 def explore():
     user=session.get('user')
-    """
+    
     if not user:
         return redirect(url_for('login'))
-    """
+    
     data = Book.query.all()
     return render_template('explore.html', data = data)
 
