@@ -6,6 +6,7 @@ from bcrypt import hashpw, gensalt
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import exc
 from werkzeug.utils import secure_filename
+ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 import boto3
 import json
 from datetime import datetime
@@ -54,6 +55,19 @@ class Users(db.Model):
 		self.username=username
 		self.email=email
 		self.password=password
+
+    def get_reset_token(self, expires_sec=600):
+        s = Serializer(app.config['SECRET_KEY'], expires_sec)
+        return s.dumps({'user_id': self.id}).decode('utf-8')
+
+    @staticmethod
+    def verify_reset_token(token):
+        s = Serializer(app.config['SECRET_KEY'])
+        try:
+            id = s.loads(token)['user_id']
+        except:
+            return None
+        return Users.query.get(user_id)
 
 # books info table
 class Book(db.Model):
@@ -164,7 +178,7 @@ def register():
         db.session.add(sign)
         db.session.commit()
     except exc.IntegrityError:
-        flash('Username already exists!!!')
+        flash('Username/Email already exists!!!')
         return render_template("signup.html")
     return redirect(url_for('explore'))
 
@@ -223,9 +237,12 @@ def make_order(book_iid):
     email = user_id[0].email
     order_id = ma_order.id
     message_body = {"email": email, "order_id": order_id, "name": cx_name, "book_name": book_info[0].title, "total_price": tot_price}
-    response = sqs.send_message(QueueUrl = QUEUE_URL, MessageBody=json.dumps(message_body))
-
-    return "Order placed successfully."
+    try:
+        response = sqs.send_message(QueueUrl = QUEUE_URL, MessageBody=json.dumps(message_body))
+    except:
+        flash("Some error occured. Contact Support...")
+        return render_template("order.html", data = book_info)
+    return redirect(url_for(my_orders))
 
 @application.route("/contact")
 def contact():
@@ -246,6 +263,51 @@ def my_orders():
 def logout():
     session.pop("user", None)
     return redirect(url_for("login"))
+
+
+@application.route("/reset_request", methods=["GET"])
+def reset_request():
+    return render_template('reset_request.html')
+
+
+@application.route("/reset_request", methods=["POST"])
+def reset_request_post():
+    email = request.form['email']
+    user = Users.query.filter_by('email'= email).first()
+    token = Users.get_reset_token()
+    message_body = {"email": email, "token"= token}
+    try:
+        response = sqs.send_message(QueueUrl = QUEUE_URL, MessageBody=json.dumps(message_body))
+        flash("Email has been sent to your registered email id. ")
+
+    except:
+        flash("Some error occured. Please contact Support...")
+    return render_template('login.html')    
+
+
+@application.route("/reset_token/<token>")
+def reset_password_page():
+    user = User.verify_reset_token(token)
+    if user is None:
+        flash("This is an invalid or expired token...", 'warning')
+        return redirect(url_for('login'))
+    return render_template('reset_password.html', user=user)
+
+
+@application.route("/reset_password/<email>", methods=["POST"])
+def reset_password(email):
+    password =request.form['password'] 
+    new_pass=convert(password)
+
+    sign = Users.query.filter_by("email"=email).first()
+    sign.password = new_pass
+    try:
+        db.session.commit()
+    except exc.IntegrityError:
+        flash('Password changed successfully!!!')
+        return redirect(url_for(reset_request))
+    return render_template('login.html')
+
 
 ################
 #  Admin code  #
