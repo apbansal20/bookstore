@@ -68,7 +68,7 @@ class Users(db.Model):
             id = s.loads(token)['user_id']
         except:
             return None
-        return Users.query.get(user_id)
+        return id
 
 # books info table
 class Book(db.Model):
