@@ -288,7 +288,8 @@ def reset_request_post():
 
 @application.route("/reset_token/<token>")
 def reset_password_page(token):
-    user = Users.verify_reset_token(token)
+    id = Users.verify_reset_token(token)
+    user = Users.query.filter_by(id=id).first()
     if user is None:
         flash("This is an invalid or expired token...", 'warning')
         return redirect(url_for('login'))
