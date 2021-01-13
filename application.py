@@ -63,7 +63,7 @@ class Users(db.Model):
 
     @staticmethod
     def verify_reset_token(token):
-        s = Serializer(app.config['SECRET_KEY'])
+        s = Serializer(application.config['SECRET_KEY'])
         try:
             id = s.loads(token)['user_id']
         except:
