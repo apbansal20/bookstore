@@ -275,7 +275,7 @@ def reset_request():
 def reset_request_post():
     email = request.form['email']
     user = Users.query.filter_by(email= email).first()
-    token = Users.get_reset_token()
+    token = user.get_reset_token()
     message_body = {"email": email, "token": token}
     try:
         response = sqs.send_message(QueueUrl = QUEUE_URL, MessageBody=json.dumps(message_body))
