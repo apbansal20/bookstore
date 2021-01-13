@@ -56,7 +56,7 @@ class Users(db.Model):
 		self.email=email
 		self.password=password
 
-    def get_reset_token(self, expires_sec=600):
+	def get_reset_token(self, expires_sec=600):
         s = Serializer(app.config['SECRET_KEY'], expires_sec)
         return s.dumps({'user_id': self.id}).decode('utf-8')
 
@@ -242,7 +242,7 @@ def make_order(book_iid):
     except:
         flash("Some error occured. Contact Support...")
         return render_template("order.html", data = book_info)
-    return redirect(url_for(my_orders))
+    return redirect(url_for("my_orders"))
 
 @application.route("/contact")
 def contact():
