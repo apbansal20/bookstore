@@ -43,8 +43,8 @@ application.config["SQLALCHEMY_DATABASE_URI"] = DB_STRING
 application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db=SQLAlchemy(application)
 
-#DB classes
 #user info table for the db
+
 class Users(db.Model):
     __tablename__="users_info"
     id=db.Column('id', db.Integer, primary_key=True)
@@ -57,7 +57,7 @@ class Users(db.Model):
         self.email=email
         self.password=password
 
-	def get_reset_token(self, expires_sec=600):
+    def get_reset_token(self, expires_sec=600):
         s = Serializer(app.config['SECRET_KEY'], expires_sec)
         return s.dumps({'user_id': self.id}).decode('utf-8')
 
