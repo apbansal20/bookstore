@@ -11,6 +11,7 @@ import boto3
 import json
 from datetime import datetime
 
+#read properties 
 fle=open('properties.txt')
 for i in fle.readlines():
     property,value = i.split("=")
