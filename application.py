@@ -58,7 +58,7 @@ class Users(db.Model):
         self.password=password
 
     def get_reset_token(self, expires_sec=600):
-        s = Serializer(app.config['SECRET_KEY'], expires_sec)
+        s = Serializer(application.config['SECRET_KEY'], expires_sec)
         return s.dumps({'user_id': self.id}).decode('utf-8')
 
     @staticmethod
