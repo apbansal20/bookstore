@@ -290,7 +290,7 @@ def reset_request_post():
 def reset_password_page(token):
     id = Users.verify_reset_token(token)
     user = Users.query.filter_by(id=id)
-    if user is None:
+    if id is None:
         flash("This is an invalid or expired token...", 'warning')
         return redirect(url_for('login'))
     return render_template('reset_password.html', user=user)
