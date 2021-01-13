@@ -42,19 +42,19 @@ application.config["SQLALCHEMY_DATABASE_URI"] = DB_STRING
 application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db=SQLAlchemy(application)
 
-
+#DB classes
 #user info table for the db
 class Users(db.Model):
-	__tablename__="users_info"
-	id=db.Column('id', db.Integer, primary_key=True)
-	username=db.Column('username', db.String(20), unique=True)
-	email = db.Column('email', db.String(30))
-	password = db.Column('password', db.String(100))
+    __tablename__="users_info"
+    id=db.Column('id', db.Integer, primary_key=True)
+    username=db.Column('username', db.String(20), unique=True)
+    email = db.Column('email', db.String(30))
+    password = db.Column('password', db.String(100))
 
-	def __init__(self, username, email, password):
-		self.username=username
-		self.email=email
-		self.password=password
+    def __init__(self, username, email, password):
+        self.username=username
+        self.email=email
+        self.password=password
 
     def get_reset_token(self, expires_sec=600):
         s = Serializer(app.config['SECRET_KEY'], expires_sec)
