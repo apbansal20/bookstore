@@ -6,7 +6,7 @@ from bcrypt import hashpw, gensalt
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import exc
 from werkzeug.utils import secure_filename
- from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 import boto3
 import json
 from datetime import datetime
@@ -273,9 +273,9 @@ def reset_request():
 @application.route("/reset_request", methods=["POST"])
 def reset_request_post():
     email = request.form['email']
-    user = Users.query.filter_by('email'= email).first()
+    user = Users.query.filter_by(email= email).first()
     token = Users.get_reset_token()
-    message_body = {"email": email, "token"= token}
+    message_body = {"email": email, "token": token}
     try:
         response = sqs.send_message(QueueUrl = QUEUE_URL, MessageBody=json.dumps(message_body))
         flash("Email has been sent to your registered email id. ")
@@ -299,7 +299,7 @@ def reset_password(email):
     password =request.form['password'] 
     new_pass=convert(password)
 
-    sign = Users.query.filter_by("email"=email).first()
+    sign = Users.query.filter_by(email=email).first()
     sign.password = new_pass
     try:
         db.session.commit()
