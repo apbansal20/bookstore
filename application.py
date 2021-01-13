@@ -271,7 +271,7 @@ def reset_request():
     return render_template('reset_request.html')
 
 
-@application.route("/reset_request", methods=["POST"])
+@application.route("/reset_requet", methods=["POST"])
 def reset_request_post():
     email = request.form['email']
     user = Users.query.filter_by(email= email).first()
