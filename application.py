@@ -14,11 +14,13 @@ from datetime import datetime
 #read properties 
 fle=open('properties.txt')
 for i in fle.readlines():
-    property,value = i.split("=")
+    property,value = i.split("=") 
+    if property.strip() == "db_name":
+        DB_NAME = value.strip()
     if property.strip() == "region":
         REGION = value.strip()
-    if property.strip()=="sql_string":
-        DB_STRING = value.strip()
+    if property.strip()=="secret_name":
+        SECRET_NAME = value.strip()
     if property.strip() == "s3_bucketname":
         S3_BUCKET = value.strip()
     if property.strip() == "cloufront_url":
@@ -28,8 +30,29 @@ for i in fle.readlines():
 
 fle.close()
 
+def get_secret(secret_name):
+
+    region_name = "ap-south-1"
+    client = boto3.client(
+        service_name='secretsmanager',
+        region_name=region_name, 
+    )
+
+    try:
+        get_secret_value_response = client.get_secret_value(
+            SecretId=secret_name
+        )
+    except:
+        log.error("Cant get the secret value") 
+    if 'SecretString' in get_secret_value_response:
+        secret = get_secret_value_response['SecretString']
+    else:
+        decoded_binary_secret = base64.b64decode(get_secret_value_response['SecretBinary'])
+
+    return secret
+
 # clients
-s3= boto3.client("s3", region_name = REGION)
+s3 = boto3.client("s3", region_name = REGION)
 sqs = boto3.client("sqs", region_name = REGION)
 
 application = Flask(__name__)
@@ -39,6 +62,9 @@ ALLOWED_EXTENSIONS = set(['jpeg', 'jpg', 'png', 'gif'])
 application.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 application.config['SECRET_KEY']='e5ac358c-f0bf-11e5-9e39-d3b532c10a28'
+
+secret = get_secret(SECRET_NAME)
+DB_STRING = "mysql+mysqlconnector://" + secret["username"] + ":" + secret["password"] + "@" + secret["host"] + "/" + DB_NAME
 application.config["SQLALCHEMY_DATABASE_URI"] = DB_STRING
 application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db=SQLAlchemy(application)
@@ -305,8 +331,8 @@ def reset_password(email):
     sign.password = new_pass
     try:
         db.session.commit()
-    except exc.IntegrityError:
         flash('Password changed successfully!!!')
+    except exc.IntegrityError:
         return redirect(url_for(reset_request))
     return render_template('login.html')
 
