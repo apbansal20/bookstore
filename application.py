@@ -43,7 +43,7 @@ def get_secret(secret_name):
             SecretId=secret_name
         )
     except:
-        log.error("Cant get the secret value") 
+        print("ERROR")
     if 'SecretString' in get_secret_value_response:
         secret = get_secret_value_response['SecretString']
     else:
@@ -265,7 +265,7 @@ def make_order(book_iid):
     order_id = ma_order.id
     message_body = {"email": email, "order_id": order_id, "name": cx_name, "book_name": book_info[0].title, "total_price": tot_price}
     try:
-        response = sqs.send_message(QueueUrl = QUEUE_URL, MessageBody=json.dumps(message_body))
+        response = sqs.send_message(QueueUrl = QUEUE_URL, MessageBody=json.dumps(message_body), MessageAttributes = {'purpose': {'DataType': 'String','StringValue': 'order'}})
     except:
         flash("Some error occured. Contact Support...")
         return render_template("order.html", data = book_info)
@@ -304,7 +304,7 @@ def reset_request_post():
     token = user.get_reset_token()
     message_body = {"email": email, "token": token}
     try:
-        response = sqs.send_message(QueueUrl = QUEUE_URL, MessageBody=json.dumps(message_body))
+        response = sqs.send_message(QueueUrl = QUEUE_URL, MessageBody=json.dumps(message_body), MessageAttributes = {'purpose': {'DataType': 'String','StringValue': 'reset'}})
         flash("Email has been sent to your registered email id. ")
 
     except:
