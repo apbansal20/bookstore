@@ -64,6 +64,7 @@ application.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 application.config['SECRET_KEY']='e5ac358c-f0bf-11e5-9e39-d3b532c10a28'
 
 secret = get_secret(SECRET_NAME)
+secret = json.loads(secret)
 DB_STRING = "mysql+mysqlconnector://" + secret["username"] + ":" + secret["password"] + "@" + secret["host"] + "/" + DB_NAME
 application.config["SQLALCHEMY_DATABASE_URI"] = DB_STRING
 application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
