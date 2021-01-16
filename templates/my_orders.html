@@ -31,11 +31,13 @@
 
     {% for order in orders %}
     <div class="row" id="orders">
-        <p> Order id: {{ order.id }}</p>
-        <p> Name: {{ order.cx_name }} </p>
-        <p> quantity: {{ order.quantity }}</p>
-        <p> Address... {{ order.address }} </p>
-        <p> Phone number: {{ order.phone }}</p> 
+        <ul>
+        <li style="display: block; color: white;"> Order id: {{ order.id }}</li>
+        <li style="display: block; color: white;"> Name: {{ order.cx_name }} </li>
+        <li style="display: block; color: white;"> quantity: {{ order.quantity }}</li>
+        <li style="display: block; color: white;"> Address... {{ order.address }} </li>
+        <li style="display: block; color: white;"> Phone number: {{ order.phone }}</li> 
+        </ul>   
     </div>
         {% endfor %}
 </div>
