@@ -10,6 +10,7 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 import boto3
 import json
 from datetime import datetime
+import jwt
 
 #read properties 
 fle=open('properties.txt')
@@ -62,6 +63,7 @@ ALLOWED_EXTENSIONS = set(['jpeg', 'jpg', 'png', 'gif'])
 application.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 application.config['SECRET_KEY']='e5ac358c-f0bf-11e5-9e39-d3b532c10a28'
+
 
 secret = get_secret(SECRET_NAME)
 secret = json.loads(secret)
@@ -150,6 +152,16 @@ def convert(pas):
     return new_pas
 
 
+def encode_token(username):
+    token = jwt.encode({"user": user}, application.config["SECRET_KEY"])
+    return token
+
+
+def decode_token(token):
+    user_name = jwt.decode(token, application.config["SECRET_KEY"],  algorithms=['HS256'])
+    return user_name["user"]
+
+
 @application.route("/")
 def index():
     return render_template("home.html")
@@ -164,7 +176,7 @@ def login():
 @application.route('/validate', methods=["POST"])
 def validate():
     userName=request.form['username']
-    session['user']=userName
+    session['user']=encode_token(userName)
     password=request.form['password']
 
     if userName=="" or password=="":
@@ -195,7 +207,7 @@ def register():
     email=request.form['email']
     password=request.form['password']
 
-    session['user']=username
+    session['user']=encode_token(username)
 
     new_pass=convert(password)
     if username=="" or email=="" or password=="":
@@ -213,7 +225,7 @@ def register():
 
 @application.route("/explore")
 def explore():
-    user=session.get('user')
+    user=decode_token(session.get('user'))
     
     if not user:
         return redirect(url_for('login'))
@@ -238,7 +250,7 @@ def order():
 @application.route("/make_order/<book_iid>", methods=["POST"])
 def make_order(book_iid):
     book_info = Book.query.filter_by(book_id = book_iid)
-    username = session['user']
+    username = decode_token(session['user'])
 
     user_id = Users.query.filter_by(username = username)
     cx_name = request.form['name']
@@ -279,7 +291,7 @@ def contact():
 
 @application.route("/my_orders")
 def my_orders():
-    username = session['user']
+    username = decode_token(session['user'])
     user_obj = Users.query.filter_by(username=username)
     user_id = user_obj[0].id
     orders = Orders.query.filter_by(user_id = user_id)
@@ -362,7 +374,7 @@ def admin_validate():
             admin_password = v
 
     if admin_username == userName and admin_password == password:
-        session['admin_user']=userName
+        session['admin_user']=encode_token(userName)
         return redirect(url_for('addBook'))
     else:
         flash("Incorrect credentials")

@@ -5,3 +5,4 @@ flask-sqlalchemy
 mysql-connector
 boto3
 flask-sqlalchemy
+PyJWT
