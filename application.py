@@ -153,7 +153,7 @@ def convert(pas):
 
 
 def encode_token(username):
-    token = jwt.encode({"user": user}, application.config["SECRET_KEY"])
+    token = jwt.encode({"user": username}, application.config["SECRET_KEY"])
     return token
 
 
