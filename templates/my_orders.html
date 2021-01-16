@@ -30,12 +30,13 @@
     </div>
 
     {% for order in orders %}
-    <div class="row"></div>
+    <div class="row" id="orders"></div>
         <p> Order id: {{ order.id }}</p>
         <p> Name: {{ order.cx_name }} </p>
         <p> quantity: {{ order.quantity }}</p>
         <p> Address... {{ order.address }} </p>
         <p> Phone number: {{ order.phone }}</p> 
+    </div>
         {% endfor %}
 </div>
 {% endblock %}
