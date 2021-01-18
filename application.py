@@ -225,7 +225,10 @@ def register():
 
 @application.route("/explore")
 def explore():
-    user=decode_token(session.get('user'))
+    try:
+        user=decode_token(session.get('user'))
+    except:
+        pass
     
     if not user:
         return redirect(url_for('login'))
