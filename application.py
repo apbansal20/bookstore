@@ -228,10 +228,10 @@ def explore():
     try:
         user=decode_token(session.get('user'))
     except:
-        pass
-    
-    if not user:
         return redirect(url_for('login'))
+
+    #if not user:
+    #    return redirect(url_for('login'))
     
     data = Book.query.all()
     return render_template('explore.html', data = data)
