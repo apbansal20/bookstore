@@ -1,7 +1,7 @@
-#sql_string=mysql+mysqlconnector://appuever:Jigyashu0601@tr1dkjka0gjhxol.cl4bvfoddhp3.ap-south-1.rds.amazonaws.com/appu_app
+#sql_string=mysql+mysqlconnector://appuever:Jigyashu0601@mrjmtde3bf5qpa.cl4bvfoddhp3.ap-south-1.rds.amazonaws.com/appu_app
 db_name = appu_app
-secret_name = MyApplicationDB
-s3_bucketname = newfinaltestcloudformationnewone
+secret_name = DataBaseSecret
+s3_bucketname = newfinaltestcloudformationnewonetwo
 cloufront_url = https://d2lc6wi2gni1kk.cloudfront.net/
 queue_url = https://sqs.ap-south-1.amazonaws.com/708736462283/MyQueue
 region = ap-south-1
