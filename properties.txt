@@ -2,6 +2,6 @@
 db_name = appu_app
 secret_name = DataBaseSecret
 s3_bucketname = newfinaltestcloudformationnewonetwo
-cloufront_url = https://d2lc6wi2gni1kk.cloudfront.net/
+cloufront_url = https://dtteuxdnqu5r5.cloudfront.net/
 queue_url = https://sqs.ap-south-1.amazonaws.com/708736462283/MyQueue
 region = ap-south-1
