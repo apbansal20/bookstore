@@ -58,7 +58,6 @@ s3 = boto3.client("s3", region_name = REGION)
 sqs = boto3.client("sqs", region_name = REGION)
 
 application = Flask(__name__)
-application = Flask(__name__)
 cors = CORS(application)
 application.config['CORS_HEADERS'] = 'Content-Type'
 
@@ -171,6 +170,7 @@ def index():
     return render_template("home.html")
 
 @application.route("/app/get_books")
+@cross_origin()
 def get_books():
     response = []
     book_iid = request.args.get('book_id')
