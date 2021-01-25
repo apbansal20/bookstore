@@ -173,6 +173,12 @@ def get_books():
     book_iid = request.args.get('book_id')
     if book_iid:
         data = Book.query.filter_by(book_id = book_iid)
+    else:
+        data = Book.query.all()
+    for i in data:
+       response.append({"book_id": i.book_id, "title": i.title, "book_description": i.book_description, "price": i.price, "author": i.author, "image": str(i.book_id)+".jpg"})
+    print(response)
+    return jsonify(response)
 
 @application.route("/app/get_orders", methods=["POST"])
 @cross_origin()
