@@ -128,8 +128,7 @@ class Genre(db.Model):
 class Orders(db.Model):
     __tablename__="orders"
     id = db.Column('id', db.Integer, primary_key=True)
-    book_id = db.Column('bo
-ok_id', db.Integer)
+    book_id = db.Column('book_id', db.Integer)
     user_id = db.Column('user_id', db.Integer)
     order_time = db.Column('ordered_time', db.DateTime, default=db.func.current_timestamp())
     address = db.Column('address', db.String(150))
@@ -183,7 +182,6 @@ def get_books():
 @application.route("/app/get_orders", methods=["POST"])
 @cross_origin()
 def get_orders():
-    @cross_origin()
     print("request data is ", request.data, "request form data is ", request.form)
     response = []
     data = Orders.query.all()
@@ -264,8 +262,7 @@ def explore():
 
 @application.route("/book/<book_iid>")
 def single_book_page(book_iid):
-    data = Book.query.filter_by(bo
-ok_id = book_iid)
+    data = Book.query.filter_by(book_id = book_iid)
     pic = CLOUDFRONT_URL + book_iid + ".jpg"
     return render_template("each_book.html", data = data, pic = pic)
 
@@ -380,8 +377,7 @@ def reset_password(email):
 
 
 ################
-#  Ad
-min code  #
+#  Admin code  #
 ################
 
 @application.route('/admin')
@@ -491,6 +487,5 @@ def admin_logout():
     session.pop("admin_user", None)
     return redirect(url_for("admin"))
 
-
-if name == "__main__":
+if __name__ == "__main__":
     application.run(debug=True, host="0.0.0.0")
