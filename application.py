@@ -58,6 +58,9 @@ s3 = boto3.client("s3", region_name = REGION)
 sqs = boto3.client("sqs", region_name = REGION)
 
 application = Flask(__name__)
+application = Flask(__name__)
+cors = CORS(application)
+application.config['CORS_HEADERS'] = 'Content-Type'
 
 UPLOAD_FOLDER = '/tmp/static/uploads'
 ALLOWED_EXTENSIONS = set(['jpeg', 'jpg', 'png', 'gif'])
