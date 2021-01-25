@@ -171,6 +171,29 @@ def index():
 def login():
     return render_template("login.html")
 
+@application.route("/app/get_books")
+def get_books():
+    response = []
+    if request.args.get('book_id')
+        data = Book.query.filter_by(book_id = book_iid)
+    else:
+        data = Book.query.all()
+    for i in data:
+       response.append({"book_id": i.book_id, "title": i.title, "book_description": i.book_description, "price": i.price, "author": i.author, "image": str(i.book_id)+".jpg"})
+    print(response)
+    return jsonify(response)
+
+@application.route("/app/get_orders", methods=["POST"])
+@cross_origin()
+def get_orders():
+    print("request data is ", request.data, "request form data is ", request.form)
+    response = []
+    data = Orders.query.all()
+    for i in data:
+       response.append({"id": i.id,"book_id": i.book_id,"user_id": i.user_id, "ordered_time": i.ordered_time, "address": i.address, "phone": i.phone, "cx_name": i.cx_name, " quantity": i.quantity, "t    otal_price": i.total_price})
+    print("response is ",response)
+    return jsonify(response)
+
 
 #Validating a user for login
 @application.route('/validate', methods=["POST"])
