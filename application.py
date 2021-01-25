@@ -1,9 +1,10 @@
 from flask import Flask
 from flask import render_template
-from flask import request, redirect, url_for
+from flask import request, redirect, url_for, jsonify
 from flask import session, flash
 from bcrypt import hashpw, gensalt
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS, cross_origin
 from sqlalchemy import exc
 from werkzeug.utils import secure_filename
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
@@ -127,7 +128,8 @@ class Genre(db.Model):
 class Orders(db.Model):
     __tablename__="orders"
     id = db.Column('id', db.Integer, primary_key=True)
-    book_id = db.Column('book_id', db.Integer)
+    book_id = db.Column('bo
+ok_id', db.Integer)
     user_id = db.Column('user_id', db.Integer)
     order_time = db.Column('ordered_time', db.DateTime, default=db.func.current_timestamp())
     address = db.Column('address', db.String(150))
@@ -166,15 +168,10 @@ def decode_token(token):
 def index():
     return render_template("home.html")
 
-
-@application.route("/login")
-def login():
-    return render_template("login.html")
-
 @application.route("/app/get_books")
 def get_books():
     response = []
-    if request.args.get('book_id')
+    if request.args.get('book_id'):
         data = Book.query.filter_by(book_id = book_iid)
     else:
         data = Book.query.all()
@@ -186,6 +183,7 @@ def get_books():
 @application.route("/app/get_orders", methods=["POST"])
 @cross_origin()
 def get_orders():
+    @cross_origin()
     print("request data is ", request.data, "request form data is ", request.form)
     response = []
     data = Orders.query.all()
@@ -193,6 +191,10 @@ def get_orders():
        response.append({"id": i.id,"book_id": i.book_id,"user_id": i.user_id, "ordered_time": i.ordered_time, "address": i.address, "phone": i.phone, "cx_name": i.cx_name, " quantity": i.quantity, "t    otal_price": i.total_price})
     print("response is ",response)
     return jsonify(response)
+
+@application.route("/login")
+def login():
+    return render_template("login.html")
 
 
 #Validating a user for login
@@ -262,7 +264,8 @@ def explore():
 
 @application.route("/book/<book_iid>")
 def single_book_page(book_iid):
-    data = Book.query.filter_by(book_id = book_iid)
+    data = Book.query.filter_by(bo
+ok_id = book_iid)
     pic = CLOUDFRONT_URL + book_iid + ".jpg"
     return render_template("each_book.html", data = data, pic = pic)
 
@@ -377,7 +380,8 @@ def reset_password(email):
 
 
 ################
-#  Admin code  #
+#  Ad
+min code  #
 ################
 
 @application.route('/admin')
@@ -488,5 +492,5 @@ def admin_logout():
     return redirect(url_for("admin"))
 
 
-if __name__ == "__main__":
+if name == "__main__":
     application.run(debug=True, host="0.0.0.0")
