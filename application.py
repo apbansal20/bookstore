@@ -279,6 +279,7 @@ def order():
 
 
 @application.route("/make_order/<book_iid>", methods=["POST"])
+@cross_origin()
 def make_order(book_iid):
     book_info = Book.query.filter_by(book_id = book_iid)
     data = request.get_json()
