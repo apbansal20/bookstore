@@ -167,6 +167,11 @@ def decode_token(token):
     return user_name["user"]
 
 
+@application.route("/")
+def index():
+    return render_template("home.html")
+
+
 @application.after_request
 def after_request(response):
     response.headers["Access-Control-Allow-Origin"] = "*" # <- You can change "*" for a domain for example "http://localhost"
