@@ -134,12 +134,13 @@ class Orders(db.Model):
     user_id = db.Column('user_id', db.Integer)
     order_time = db.Column('ordered_time', db.DateTime, default=db.func.current_timestamp())
     address = db.Column('address', db.String(150))
+    pin_code = db.Column('pincode', db.String(6))
     phone = db.Column('phone', db.String(15))
     cx_name = db.Column('cx_name', db.String(30))
     quantity = db.Column('quantity', db.Integer)
     price = db.Column('total_price', db.Integer)
     
-    def __init(self, book_id, user_id, address, phone, cx_name):
+    def __init(self, book_id, user_id, address, phone, cx_name, pin_code):
         self.book_id = book_id
         self.user_id = user_id
         self.address = address
@@ -147,6 +148,7 @@ class Orders(db.Model):
         self.cx_name = cx_name
         self.quantity = quantity
         self.price = price
+        self.pin_code = pin_code
 
 
 def convert(pas):
@@ -165,10 +167,6 @@ def decode_token(token):
     return user_name["user"]
 
 
-@application.route("/")
-def index():
-    return render_template("home.html")
-
 @application.route("/app/get_books")
 @cross_origin()
 def get_books():
@@ -183,6 +181,7 @@ def get_books():
     print(response)
     return jsonify(response)
 
+
 @application.route("/app/get_orders", methods=["POST"])
 @cross_origin()
 def get_orders():
@@ -193,6 +192,7 @@ def get_orders():
        response.append({"id": i.id,"book_id": i.book_id,"user_id": i.user_id, "ordered_time": i.ordered_time, "address": i.address, "phone": i.phone, "cx_name": i.cx_name, " quantity": i.quantity, "t    otal_price": i.total_price})
     print("response is ",response)
     return jsonify(response)
+
 
 @application.route("/login")
 def login():
@@ -277,23 +277,26 @@ def order():
     book_info = Book.query.filter_by(book_id = book_id)
     return render_template("order.html", data = book_info)
 
+
 @application.route("/make_order/<book_iid>", methods=["POST"])
 def make_order(book_iid):
     book_info = Book.query.filter_by(book_id = book_iid)
-    username = decode_token(session['user'])
+    data = request.get_json()
+    print(data)
+    username = data['userAttributes'].get("username")
 
-    user_id = Users.query.filter_by(username = username)
-    cx_name = request.form['name']
-    address=request.form['address']
-    phone=request.form['phone']
-    quantity = request.form['quantity']
+    cx_name = data['name']
+    address = data['address']
+    phone = data['phone']
+    quantity = data['quantity']
+    pin_code = data["pincode"]
     if address=="" or phone=="" or quantity=="" or cx_name=="" :
         flash("Mandatory fields are missing")
         return render_template('order.html', data = book_info)
     tot_price = float(book_info[0].price) * int(quantity)
     
     try:
-        ma_order = Orders(book_id = book_iid, address = address, cx_name = cx_name, phone = phone, user_id = user_id[0].id, quantity = quantity, price = tot_price)
+        ma_order = Orders(book_id = book_iid, address = address, cx_name = cx_name, phone = phone, user_id = username, quantity = quantity, price = tot_price, pin_code=pin_code)
         db.session.add(ma_order)
         db.session.commit()
         flash('Your order was done successfully')
