@@ -131,7 +131,7 @@ class Orders(db.Model):
     __tablename__="orders"
     id = db.Column('id', db.Integer, primary_key=True)
     book_id = db.Column('book_id', db.Integer)
-    user_id = db.Column('user_id', db.Integer)
+    username = db.Column('username', db.String(50))
     order_time = db.Column('ordered_time', db.DateTime, default=db.func.current_timestamp())
     address = db.Column('address', db.String(150))
     pin_code = db.Column('pincode', db.String(6))
@@ -139,10 +139,11 @@ class Orders(db.Model):
     cx_name = db.Column('cx_name', db.String(30))
     quantity = db.Column('quantity', db.Integer)
     price = db.Column('total_price', db.Integer)
+    order_status = db.Column('order_status', db.String(20), default = "order received")
     
-    def __init(self, book_id, user_id, address, phone, cx_name, pin_code):
+    def __init(self, book_id, username, address, phone, cx_name, pin_code):
         self.book_id = book_id
-        self.user_id = user_id
+        self.username = username
         self.address = address
         self.phone = phone
         self.cx_name = cx_name
@@ -199,11 +200,13 @@ def get_books():
 @application.route("/app/get_orders", methods=["POST"])
 @cross_origin()
 def get_orders():
-    print("request data is ", request.data, "request form data is ", request.form)
+    print("request data is ", request.data)
+    user_name = json.loads(request.data.decode("ascii"))["username"]
+    print("username is ", user_name)
     response = []
-    data = Orders.query.all()
+    data = Orders.query.filter_by(username = user_name)
     for i in data:
-       response.append({"id": i.id,"book_id": i.book_id,"user_id": i.user_id, "ordered_time": i.ordered_time, "address": i.address, "phone": i.phone, "cx_name": i.cx_name, " quantity": i.quantity, "t    otal_price": i.total_price})
+        response.append({"id": i.id,"book_id": i.book_id,"username": i.username, "ordered_time": i.order_time, "address": i.address, "phone": i.phone, "cx_name": i.cx_name, "quantity": i.quantity, "total_price": i.price, "order_status": i.order_status})
     print("response is ",response)
     return jsonify(response)
 
@@ -311,7 +314,7 @@ def make_order(book_iid):
     tot_price = float(book_info[0].price) * int(quantity)
     
     try:
-        ma_order = Orders(book_id = book_iid, address = address, cx_name = cx_name, phone = phone, user_id = username, quantity = quantity, price = tot_price, pin_code=pin_code)
+        ma_order = Orders(book_id = book_iid, address = address, cx_name = cx_name, phone = phone, username = username, quantity = quantity, price = tot_price, pin_code=pin_code)
         db.session.add(ma_order)
         db.session.commit()
         flash('Your order was done successfully')
@@ -322,15 +325,15 @@ def make_order(book_iid):
     """ 
         Sending message to the queue
     """
-    email = user_id[0].email
+    email = data["userAttributes"]["attributes"]["email"]
     order_id = ma_order.id
     message_body = {"email": email, "order_id": order_id, "name": cx_name, "book_name": book_info[0].title, "total_price": tot_price}
     try:
         response = sqs.send_message(QueueUrl = QUEUE_URL, MessageBody=json.dumps(message_body), MessageAttributes = {'purpose': {'DataType': 'String','StringValue': 'order'}})
     except:
-        flash("Some error occured. Contact Support...")
-        return render_template("order.html", data = book_info)
-    return redirect(url_for("my_orders"))
+        return {"status": "failed"}
+    return {"status": "succede"}
+
 
 @application.route("/contact")
 def contact():
