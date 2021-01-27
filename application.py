@@ -75,32 +75,6 @@ application.config["SQLALCHEMY_DATABASE_URI"] = DB_STRING
 application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db=SQLAlchemy(application)
 
-#user info table for the db
-
-class Users(db.Model):
-    __tablename__="users_info"
-    id=db.Column('id', db.Integer, primary_key=True)
-    username=db.Column('username', db.String(20), unique=True)
-    email = db.Column('email', db.String(30))
-    password = db.Column('password', db.String(100))
-
-    def __init__(self, username, email, password):
-        self.username=username
-        self.email=email
-        self.password=password
-
-    def get_reset_token(self, expires_sec=600):
-        s = Serializer(application.config['SECRET_KEY'], expires_sec)
-        return s.dumps({'user_id': self.id}).decode('utf-8')
-
-    @staticmethod
-    def verify_reset_token(token):
-        s = Serializer(application.config['SECRET_KEY'])
-        try:
-            id = s.loads(token)['user_id']
-        except:
-            return None
-        return id
 
 # books info table
 class Book(db.Model):
@@ -117,6 +91,7 @@ class Book(db.Model):
         self.book_description = book_description
         self.author = author
 
+
 class Genre(db.Model):
     __tablename__="genres"
     id = db.Column('id', db.Integer, primary_key=True)
@@ -127,11 +102,12 @@ class Genre(db.Model):
         self.book_id = book_id
         self.genre = genre
 
+
 class Orders(db.Model):
     __tablename__="orders"
     id = db.Column('id', db.Integer, primary_key=True)
     book_id = db.Column('book_id', db.Integer)
-    user_id = db.Column('user_id', db.Integer)
+    username = db.Column('username', db.String(50))
     order_time = db.Column('ordered_time', db.DateTime, default=db.func.current_timestamp())
     address = db.Column('address', db.String(150))
     pin_code = db.Column('pincode', db.String(6))
@@ -139,10 +115,11 @@ class Orders(db.Model):
     cx_name = db.Column('cx_name', db.String(30))
     quantity = db.Column('quantity', db.Integer)
     price = db.Column('total_price', db.Integer)
+    order_status = db.Column('order_status', db.String(20), default = "order received")
     
-    def __init(self, book_id, user_id, address, phone, cx_name, pin_code):
+    def __init(self, book_id, username, address, phone, cx_name, pin_code):
         self.book_id = book_id
-        self.user_id = user_id
+        self.username = username
         self.address = address
         self.phone = phone
         self.cx_name = cx_name
@@ -150,26 +127,6 @@ class Orders(db.Model):
         self.price = price
         self.pin_code = pin_code
 
-
-def convert(pas):
-    pas=pas.encode()
-    new_pas=hashpw(pas, gensalt())
-    return new_pas
-
-
-def encode_token(username):
-    token = jwt.encode({"user": username}, application.config["SECRET_KEY"])
-    return token
-
-
-def decode_token(token):
-    user_name = jwt.decode(token, application.config["SECRET_KEY"],  algorithms=['HS256'])
-    return user_name["user"]
-
-
-@application.route("/")
-def index():
-    return render_template("home.html")
 
 
 @application.after_request
@@ -199,97 +156,15 @@ def get_books():
 @application.route("/app/get_orders", methods=["POST"])
 @cross_origin()
 def get_orders():
-    print("request data is ", request.data, "request form data is ", request.form)
+    print("request data is ", request.data)
+    user_name = json.loads(request.data.decode("ascii"))["username"]
+    print("username is ", user_name)
     response = []
-    data = Orders.query.all()
+    data = Orders.query.filter_by(username = user_name)
     for i in data:
-       response.append({"id": i.id,"book_id": i.book_id,"user_id": i.user_id, "ordered_time": i.ordered_time, "address": i.address, "phone": i.phone, "cx_name": i.cx_name, " quantity": i.quantity, "t    otal_price": i.total_price})
+        response.append({"id": i.id,"book_id": i.book_id,"username": i.username, "ordered_time": i.order_time, "address": i.address, "phone": i.phone, "cx_name": i.cx_name, "quantity": i.quantity, "total_price": i.price, "order_status": i.order_status})
     print("response is ",response)
     return jsonify(response)
-
-
-@application.route("/login")
-def login():
-    return render_template("login.html")
-
-
-#Validating a user for login
-@application.route('/validate', methods=["POST"])
-def validate():
-    userName=request.form['username']
-    session['user']=encode_token(userName)
-    password=request.form['password']
-
-    if userName=="" or password=="":
-        flash("Required fields are missing..!")
-        return render_template('login.html')
-    pass1=Users.query.filter_by(username=userName).first()
-    if pass1==None:
-        return render_template('foff.html')
-    else:
-        password=password.encode('utf-8')
-        db_pass=pass1.password.encode()
-        if hashpw(password, db_pass)==db_pass:
-            return redirect(url_for('explore'))
-        else:
-            flash("Invalid credentials...!")
-            return render_template('login.html')
-
-
-@application.route("/signup")
-def signup():
-    return render_template("signup.html")
-
-
-#Sending data to the database 
-@application.route('/register', methods=["POST"])
-def register():
-    username=request.form['username']
-    email=request.form['email']
-    password=request.form['password']
-
-    session['user']=encode_token(username)
-
-    new_pass=convert(password)
-    if username=="" or email=="" or password=="":
-        flash("Mandatory fields are missing")
-        return render_template('signup.html')
-    sign = Users(username=username, email=email, password=new_pass)
-    try:
-        db.session.add(sign)
-        db.session.commit()
-    except exc.IntegrityError:
-        flash('Username/Email already exists!!!')
-        return render_template("signup.html")
-    return redirect(url_for('explore'))
-
-
-@application.route("/explore")
-def explore():
-    try:
-        user=decode_token(session.get('user'))
-    except:
-        return redirect(url_for('login'))
-
-    #if not user:
-    #    return redirect(url_for('login'))
-    
-    data = Book.query.all()
-    return render_template('explore.html', data = data)
-
-
-@application.route("/book/<book_iid>")
-def single_book_page(book_iid):
-    data = Book.query.filter_by(book_id = book_iid)
-    pic = CLOUDFRONT_URL + book_iid + ".jpg"
-    return render_template("each_book.html", data = data, pic = pic)
-
-
-@application.route("/order")
-def order():
-    book_id = request.args.get("bookid", None)
-    book_info = Book.query.filter_by(book_id = book_id)
-    return render_template("order.html", data = book_info)
 
 
 @application.route("/make_order/<book_iid>", methods=["POST"])
@@ -297,7 +172,6 @@ def order():
 def make_order(book_iid):
     book_info = Book.query.filter_by(book_id = book_iid)
     data = request.get_json()
-    print(data)
     username = data['userAttributes'].get("username")
 
     cx_name = data['name']
@@ -309,93 +183,25 @@ def make_order(book_iid):
         flash("Mandatory fields are missing")
         return render_template('order.html', data = book_info)
     tot_price = float(book_info[0].price) * int(quantity)
-    
+
     try:
-        ma_order = Orders(book_id = book_iid, address = address, cx_name = cx_name, phone = phone, user_id = username, quantity = quantity, price = tot_price, pin_code=pin_code)
+        ma_order = Orders(book_id = book_iid, address = address, cx_name = cx_name, phone = phone, username = username, quantity = quantity, price = tot_price, pin_code=pin_code)
         db.session.add(ma_order)
         db.session.commit()
         flash('Your order was done successfully')
     except exc.IntegrityError:
         flash('Some error occured. Contact support...')
-        return render_template("order.html", data = book_info)
-    
-    """ 
-        Sending message to the queue
-    """
-    email = user_id[0].email
+
+
+        #Sending message to the queue
+    email = data["userAttributes"]["attributes"]["email"]
     order_id = ma_order.id
     message_body = {"email": email, "order_id": order_id, "name": cx_name, "book_name": book_info[0].title, "total_price": tot_price}
     try:
         response = sqs.send_message(QueueUrl = QUEUE_URL, MessageBody=json.dumps(message_body), MessageAttributes = {'purpose': {'DataType': 'String','StringValue': 'order'}})
     except:
-        flash("Some error occured. Contact Support...")
-        return render_template("order.html", data = book_info)
-    return redirect(url_for("my_orders"))
-
-@application.route("/contact")
-def contact():
-    return render_template("contact.html")
-
-
-@application.route("/my_orders")
-def my_orders():
-    username = decode_token(session['user'])
-    user_obj = Users.query.filter_by(username=username)
-    user_id = user_obj[0].id
-    orders = Orders.query.filter_by(user_id = user_id)
-
-    return render_template("my_orders.html", orders = orders)
-
-
-@application.route("/logout")
-def logout():
-    session.pop("user", None)
-    return redirect(url_for("login"))
-
-
-@application.route("/reset_request", methods=["GET"])
-def reset_request():
-    return render_template('reset_request.html')
-
-
-@application.route("/reset_requet", methods=["POST"])
-def reset_request_post():
-    email = request.form['email']
-    user = Users.query.filter_by(email= email).first()
-    token = user.get_reset_token()
-    message_body = {"email": email, "token": token}
-    try:
-        response = sqs.send_message(QueueUrl = QUEUE_URL, MessageBody=json.dumps(message_body), MessageAttributes = {'purpose': {'DataType': 'String','StringValue': 'reset'}})
-        flash("Email has been sent to your registered email id. ")
-
-    except:
-        flash("Some error occured. Please contact Support...")
-    return render_template('login.html')    
-
-
-@application.route("/reset_token/<token>")
-def reset_password_page(token):
-    id = Users.verify_reset_token(token)
-    user = Users.query.filter_by(id=id)
-    if id is None:
-        flash("This is an invalid or expired token...", 'warning')
-        return redirect(url_for('login'))
-    return render_template('reset_password.html', user=user)
-
-
-@application.route("/reset_password/<email>", methods=["POST"])
-def reset_password(email):
-    password =request.form['password'] 
-    new_pass=convert(password)
-
-    sign = Users.query.filter_by(email=email).first()
-    sign.password = new_pass
-    try:
-        db.session.commit()
-        flash('Password changed successfully!!!')
-    except exc.IntegrityError:
-        return redirect(url_for(reset_request))
-    return render_template('login.html')
+        return {"status": "failed"}
+    return {"status": "succede"}
 
 
 ################
@@ -509,5 +315,6 @@ def admin_logout():
     session.pop("admin_user", None)
     return redirect(url_for("admin"))
 
+
 if __name__ == "__main__":
-    application.run(debug=True, host="0.0.0.0")
+    application.run(host="0.0.0.0")
