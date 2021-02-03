@@ -227,7 +227,7 @@ def admin_validate():
             admin_password = v
 
     if admin_username == userName and admin_password == password:
-        session['admin_user']=encode_token(userName)
+        session['admin_user']=userName
         return redirect(url_for('addBook'))
     else:
         flash("Incorrect credentials")
